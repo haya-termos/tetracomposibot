@@ -1,4 +1,3 @@
-
 from robot import * 
 import math
 
@@ -16,6 +15,7 @@ class Robot_player(Robot):
     it_per_evaluation = 400
     trial = 0
     best_score=float('-inf')
+    current_score=0
     best_trial=0
     done=0
     prev_log_sum_of_rotation=0
@@ -57,16 +57,27 @@ class Robot_player(Robot):
                     print ("\tdistance from origin =",math.sqrt((self.x-self.x_0)**2+(self.y-self.y_0)**2))
                     print ("\tscore=",self.log_sum_of_translation*(1-abs(self.log_sum_of_rotation)))
 
-                    if self.log_sum_of_translation*(1-abs(self.log_sum_of_rotation))> self.best_score:
-                        self.best_score=self.log_sum_of_translation*(1-abs(self.log_sum_of_rotation))
+                    if self.current_score> self.best_score:
+                        self.best_score=self.current_score
                         self.bestParam=list(self.param)
                         self.best_trial=self.trial
-                    
+                self.current_score=0   
+                self.prev_log_sum_of_rotation=0
+                self.prev_log_sum_of_translation=0
                 self.param = [random.randint(-1, 1) for i in range(8)]
                 self.trial = self.trial + 1
                 print ("Trying strategy no.",self.trial)
                 self.iteration = self.iteration + 1
                 return 0, 0, True # ask for reset
+        
+            if self.iteration % self.it_per_evaluation>=2:
+                deltatrans= self.log_sum_of_translation-self.prev_log_sum_of_translation
+                deltarot=self.log_sum_of_rotation-self.prev_log_sum_of_rotation
+                self.current_score+=deltatrans*(1-abs(deltarot))
+                self.prev_log_sum_of_translation=self.log_sum_of_translation
+                self.prev_log_sum_of_rotation=self.log_sum_of_rotation
+
+    
         else:
             if self.done==0:
                 print ("Meilleure stratégie:")
